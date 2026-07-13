@@ -1,0 +1,139 @@
+# Estrutura sugerida — Repositório de Pesquisa (BT806-55)
+
+## Árvore de pastas
+
+```
+viscoelastico-bt806-55/
+├── README.md
+├── .gitignore
+├── scripts/
+│   ├── matlab/
+│   │   ├── modelo1_calibracao.m
+│   │   ├── modelo2_calibracao.m
+│   │   ├── modelo3_calibracao.m
+│   │   ├── modelo4_calibracao.m
+│   │   └── lib/                      # funções compartilhadas (Rayleigh-K, Prony, etc)
+│   └── ansys/
+│       └── batch/                    # scripts .py ou .txt de automação ANSYS (não os .rst/.db)
+├── dados/
+│   ├── entrada/                      # parâmetros de material, geometria (texto/CSV, versionável)
+│   └── resultados_processados/       # CSVs/planilhas leves com resultados já extraídos
+├── memoriais/
+│   ├── modelo1/
+│   │   ├── memorial_modelo1.tex
+│   │   └── figuras/
+│   ├── modelo2/
+│   ├── modelo3/
+│   └── modelo4/
+├── docs/
+│   └── framework_analitico.md        # explicação do 1-DOF, Rayleigh-K, convenções
+└── CHANGELOG.md                      # histórico de marcos (opcional, complementa as tags)
+```
+
+## .gitignore sugerido
+
+```gitignore
+# ANSYS
+*.rst
+*.db
+*.lock
+*.esav
+*.mntr
+*.ldhi
+*.rdb
+*_files/
+
+# LaTeX
+*.aux
+*.log
+*.out
+*.toc
+*.synctex.gz
+
+# MATLAB
+*.asv
+*.m~
+slprj/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Dados pesados que não devem ir pro Git (usar link externo se necessário)
+*.mat.bak
+/dados/brutos/
+```
+
+> Regra prática: se o arquivo pode ser **regenerado** rodando o script (resultado bruto do ANSYS, .aux do LaTeX), ele não entra no repositório. Só entram *inputs* e *outputs finais leves* (CSV pequeno, PDF do memorial).
+
+## README.md — modelo inicial
+
+```markdown
+# Caracterização Dinâmica de Materiais Viscoelásticos — BT806-55
+
+Repositório de pesquisa de doutorado sobre caracterização dinâmica de materiais
+viscoelásticos, com foco no material BT806-55 (E0 = 3 MPa, G0 = 1.0067e6 Pa,
+ν = 0.49, η = 0.20, ρ = 1100 kg/m³).
+
+## Framework
+
+Correlação entre modelos ANSYS Workbench (Static Structural, Modal, Harmonic
+Response) e um modelo analítico 1-DOF com amortecimento de Rayleigh (β_K),
+usando a equação de calibração:
+
+    KG_cal = λ · KG_ideal
+
+onde λ é determinado empiricamente por geometria.
+
+## Modelos e resultados consolidados
+
+| Modelo | Tipo de contato        | λ     |
+|--------|-------------------------|-------|
+| M1     | —                        | 0.762 |
+| M2     | Segmentado descontínuo   | 1.185 |
+| M3     | —                        | 0.971 |
+| M4     | Contínuo                 | 0.597 |
+
+## Requisitos
+
+- MATLAB R2014b (compatibilidade estrita — sem toolboxes além de Optimization
+  Toolbox, sem `xline`/`yline`/`sgtitle`)
+- ANSYS Workbench (versão X)
+- LaTeX (para compilar os memoriais em `memoriais/`)
+
+## Como reproduzir um modelo
+
+1. Rodar `scripts/ansys/batch/modeloN.txt` para gerar os resultados brutos
+2. Extrair os resultados relevantes para `dados/resultados_processados/`
+3. Rodar `scripts/matlab/modeloN_calibracao.m`
+4. Compilar `memoriais/modeloN/memorial_modeloN.tex`
+
+## Status
+
+Em desenvolvimento — ver `CHANGELOG.md` para marcos recentes.
+```
+
+## Convenção de commits sugerida
+
+```
+calc:  ajuste em cálculo/script (ex: "calc: corrige beta_K modelo 3")
+docs:  memorial, README, documentação
+data:  atualização de dados de entrada/resultados
+fix:   correção de bug em script
+refactor: reorganização sem mudar resultado
+```
+
+## Tags (marcos)
+
+Quando fechar uma versão validada de um modelo:
+
+```bash
+git tag -a v1.0-modelo3 -m "Modelo 3 validado contra 1-DOF, lambda=0.971"
+git push origin v1.0-modelo3
+```
+
+## Privacidade
+
+Repositório recomendado como **privado** até a defesa/publicação. Pode ser
+tornado público (ou parcialmente extraído para um repo de "métodos") depois,
+como peça de portfólio técnico.
